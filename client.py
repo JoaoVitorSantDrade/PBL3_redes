@@ -18,7 +18,7 @@ class Client(DatagramProtocol):
         self.transport.write("ready".encode("utf-8"), self.server)
 
     def datagramReceived(self, datagram: bytes, addr):
-        
+        print("test")
         datagram = datagram.decode("utf-8")
         print(datagram)
         if addr == self.server: 
@@ -36,3 +36,4 @@ class Client(DatagramProtocol):
 if __name__ == "__main__":
     port = randint(1000,5000)
     reactor.listenUDP(port, Client('localhost', port))
+    reactor.run()

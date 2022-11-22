@@ -13,7 +13,7 @@ class Server(DatagramProtocol):
             addresses = "\n".join([str(x) for x in self.clients])
             self.transport.write(addresses.encode('utf-8'), addr)
             self.transport.write("ready".encode("utf-8"), addr)
-            print("Pronto")
+            print(f"{addr} conectado")
             self.clients.add(addr)
 
 
