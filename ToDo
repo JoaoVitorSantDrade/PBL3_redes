@@ -1,0 +1,22 @@
+1. Conexao
+    Feita somente quando necessaria comunicação (10 Pipes por marketplaces)
+    Busca por pares na rede
+    Tentar se conectar aos pares na rede
+    Mensagem caso consiga/não consiga
+
+2. Envio de mensagens
+    Protocolo p/ envio de mensagens
+    Confirmação de recebimento
+
+3. Envio de Jsons
+    Enviar Jsons
+    Mensagens caso consiga/não consiga
+
+4. Sincronização da informação
+    Protocolo simulando carrinho de compras
+    Simular tentativas de compras
+    Sincronização das compras entre diversos marketplaces
+
+5. Front-end
+    Fazer um front-end básico
+    Fazer um css

@@ -28,7 +28,7 @@ class Client:
         sock.settimeout(None)
         return sock
 
-    def connect_tcp_hidrometro(self):
+    def connect_tcp(self):
 
         sock,servidor = Client.connect_sock(self)
         try:
@@ -49,12 +49,11 @@ class Client:
 class Server:
     payload_size = 1024
     
-
     def __init__(self,host,port):
         self.host = host
         self.port = port
 
-    def serverTCP_nuvem(self,lista_hidrometros): #Receber requisições dos Hidrometros
+    def serverTCP_nuvem(self): #Receber requisições
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
         servidor = (self.host, self.port)
