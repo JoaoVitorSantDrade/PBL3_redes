@@ -14,14 +14,14 @@ import p2pConfig as conf
 from peer import Peer
 import uuid
 
-# Lista de produtos no consorcio de marketplaces
-lista_produtos = defaultdict(dict)
+
 # Lista de Marketplaces no consorcio 
 lista_marketplaces = defaultdict(dict)
 #fila de requisições
 fila_de_comandos = defaultdict(dict)
 pos=0
 
+main_marketplace = None
 
 class marketplace:
     def __init__(self, host:str, port:int, name:str):
@@ -30,8 +30,7 @@ class marketplace:
         self.port:int = port
         self.name:str = name
         self.peers:list = self.Generate_peer_list()
-        self.peer_comm()
-
+        self.lista_produtos:dict = defaultdict(dict)
 
     def Generate_peer_list(self):
         peer_list:list = list()
@@ -50,19 +49,9 @@ class marketplace:
             except Exception as NotAvailableNow:
                 print("Nenhum peer disponível, tente mais tarde")
                 
-
-
-    def comunicacao(self):
-        while True:
-            if pos != "0":
-                    print("replicando base de dados")
-                    for key, value in lista_marketplaces.items():
-                        URL = "https://"+value["host"]+":"+value["port"]+"/api/cadastro"
-                        PARAMS = ({"id":1},{"produto":"cadeira"},{"qtd":1},{"preco":120},{"idMP":self.id},{"loja":"loja"})
-                        req = request(url = URL, params= PARAMS)
-                    pos = 0
-            time.sleep(2)
-        pass
+    def add_products(self, json):
+        id = uuid.uuid1()
+        self.lista_produtos[id].update({json})
 
 app = Flask(__name__)
 @app.route('/api', methods=['GET'])
@@ -70,8 +59,8 @@ def api():
     return "Marketplace Operando"
 
 # Pesca
-# /api/cadastro?id=1&produto=Carro&qtd=3&preco=12&idMP=1&loja=Armario_seu_Kleber
-@app.route('/api/cadastro', methods=['GET'])
+# /api/cadastro/?id=1&produto=Carro&qtd=3&preco=12&idMP=1&loja=Armario_seu_Kleber
+@app.route('/api/cadastro/', methods=['GET'])
 def api_cad():
     args = request.args
     args = args.to_dict()
@@ -84,13 +73,6 @@ def api_cad():
             preco = str(args["preco"])
             id_marketplace = str(args["idMP"])
             loja = str(args["loja"])
-            lista_produtos[id].update({"id":id})
-            lista_produtos[id].update({"nome":produto})
-            lista_produtos[id].update({"qtd":qtd})
-            lista_produtos[id].update({"preco":preco})
-            lista_produtos[id].update({"id_marketplace":id_marketplace})
-            lista_produtos[id].update({"loja":loja})
-            pos = id
             return "Cadastrei "+qtd+" "+produto
     return "produto não informado"
 
