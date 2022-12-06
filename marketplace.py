@@ -1,5 +1,4 @@
 from flask import Flask, request
-import paho.mqtt.client as mqtt
 from random import randint
 from collections import defaultdict
 import os
@@ -13,6 +12,7 @@ from threading import Thread
 import time
 import p2pConfig as conf
 from peer import Peer
+import uuid
 
 # Lista de produtos no consorcio de marketplaces
 lista_produtos = defaultdict(dict)
@@ -25,7 +25,7 @@ pos=0
 
 class marketplace:
     def __init__(self, host:str, port:int, name:str):
-        self.id = randint(1,100)
+        self.id:uuid = uuid.uuid4()
         self.host:str = host
         self.port:int = port
         self.name:str = name
