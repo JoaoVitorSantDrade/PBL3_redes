@@ -19,25 +19,31 @@ lista_marketplaces = defaultdict(dict)
 #fila de requisições
 fila_de_comandos = defaultdict(dict)
 pos=0
+
+
 class marketplace:
     def __init__(self,host,port,name) -> None:
         self.id = randint(1,100)
         self.host = host
         self.port = port
         self.name = name
-        self.peers:list = None
+        self.peers:list = list()
 
-def comunicacao(self):
-    while True:
-       if pos != "0":
-            print("replicando base de dados")
-            for key, value in lista_marketplaces.items():
-               URL = "https://"+value["host"]+":"+value["port"]+"/api/cadastro"
-               PARAMS = ({"id":1},{"produto":"cadeira"},{"qtd":1},{"preco":120},{"idMP":self.id},{"loja":"loja"})
-               req = request(url = URL, params= PARAMS)
-            pos =0
-       time.sleep(2)
-    pass
+    def peer_comm(self):
+        pass
+
+
+    def comunicacao(self):
+        while True:
+            if pos != "0":
+                    print("replicando base de dados")
+                    for key, value in lista_marketplaces.items():
+                        URL = "https://"+value["host"]+":"+value["port"]+"/api/cadastro"
+                        PARAMS = ({"id":1},{"produto":"cadeira"},{"qtd":1},{"preco":120},{"idMP":self.id},{"loja":"loja"})
+                        req = request(url = URL, params= PARAMS)
+                    pos = 0
+            time.sleep(2)
+        pass
 
 app = Flask(__name__)
 @app.route('/api', methods=['GET'])
@@ -128,11 +134,11 @@ def ap_makertplace():
 if __name__ == '__main__':
     host1= input("Informe o host:")
     porta = input("Informe a porta:")
-    nome = input("Informeo o nome do marketplace:")
+    nome = input("Informe o nome do marketplace:")
 
-    marketplace = marketplace(porta,host1,nome)
+    mkt = marketplace(porta,host1,nome)
     
     api = Thread(target= app.run(host= host1, port=porta))
-    com = Thread(target= comunicacao)
+    com = Thread(target= mkt.comunicacao)
     api.start()
     com.start()

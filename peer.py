@@ -17,13 +17,14 @@ class Peer_Type(Enum):
     RECIEVER = 2
 
 class Peer:
-    def __init__(self, type:Peer_Type,host:str, port:int):
+    def __init__(self, type:Peer_Type,host:str, port:int, Marketplace_Port:int):
         self.id:uuid = uuid.uuid4()
         self.connection:set = set()
         self.SuccefullConnection:set = set()
         self.type:Peer_Type = type
         self.Host:str = host
         self.Port:int = port
+        self.MK_Port:int = Marketplace_Port
         self.Ocupado:bool = False
 
     def Add_connection(self, url:str):
@@ -56,7 +57,7 @@ class Peer:
         try:
             for url in self.connection:
                 for i in conf.PORT_RANGE:
-                    if i != self.Port:
+                    if i < self.MK_Port or i >= (self.MK_Port+30):
                         try:
                             link = url + ":" + str(i)
                             my_info = (self.Host, self.Port)
@@ -85,7 +86,7 @@ class Peer:
         
         self.Ocupado = False
 
-    def sendMessage(self, msg, host,port):
+    def sendMessage(self, msg):
         pass
 
 Main_Peer:Peer = None
@@ -105,7 +106,7 @@ if __name__ == '__main__': #Teste
 
     IP = input("Digite o IP: ")
     port = int(input("Digite a Porta: "))
-    par = Peer(Peer_Type.SENDER, host=IP, port=port)
+    par = Peer(Peer_Type.SENDER, host=IP, port=port,Marketplace_Port=10030)
     Main_Peer = par
     par.Add_connection("http://localhost")
     try:
