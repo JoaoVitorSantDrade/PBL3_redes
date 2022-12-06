@@ -25,6 +25,7 @@ class marketplace:
         self.host = host
         self.port = port
         self.name = name
+        self.peers:list = None
 
 def comunicacao(self):
     while True:

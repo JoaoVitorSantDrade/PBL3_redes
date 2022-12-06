@@ -1,4 +1,5 @@
 import socket
+import time
 import uuid
 import p2pConfig as conf
 import json
@@ -19,10 +20,11 @@ class Peer:
     def __init__(self, type:Peer_Type,host:str, port:int):
         self.id:uuid = uuid.uuid4()
         self.connection:set = set()
-        self.SuccefullConnection:dict = dict()
+        self.SuccefullConnection:set = set()
         self.type:Peer_Type = type
         self.Host:str = host
         self.Port:int = port
+        self.Ocupado:bool = False
 
     def Add_connection(self, url:str):
         self.connection.add(url)
@@ -33,11 +35,17 @@ class Peer:
         except Exception:
             print("URL não cadastrada")
 
+    def ShowConnections(self):
+        while True:
+            print(self.SuccefullConnection)
+            time.sleep(2)
+
     def ARP(self):
+        self.Ocupado = True
         try:
             assert self.type == Peer_Type.SENDER
 
-            retry = Retry(backoff_factor=0.02, connect=2)
+            retry = Retry(backoff_factor=0.005, connect=2)
             session = requests.Session()
             adapter = HTTPAdapter(max_retries=retry)
             session.mount('http://', adapter)
@@ -51,9 +59,11 @@ class Peer:
                     if i != self.Port:
                         try:
                             link = url + ":" + str(i)
-                            r = session.post(link + "/api/connection" , data=self.Host, headers=headers, timeout=0.002) #Adiciona par encontrado na lista
+                            my_info = (self.Host, self.Port)
+                            peer_info = (url,str(i))
+                            r = session.post(link + "/api/connection" , json=my_info, headers=headers, timeout=0.002) #Adiciona par encontrado na lista
                             print(f"Par encontrado em: {link} - {r.status_code}")
-                            self.SuccefullConnection.update({url:str(i)})
+                            self.SuccefullConnection.add(peer_info)
                         except requests.exceptions.ConnectionError as errc:
                             print(f"Falha ao conectar em :{i}")
                             pass
@@ -72,8 +82,10 @@ class Peer:
                     
         except Exception as MainFailure:
             print(MainFailure)
+        
+        self.Ocupado = False
 
-    def sendMessage(self, msg, id):
+    def sendMessage(self, msg, host,port):
         pass
 
 Main_Peer:Peer = None
@@ -83,9 +95,10 @@ app = Flask(__name__)
 @app.route('/api/connection', methods=['POST'])
 def arp():
     args = request.data.decode() #Caso seja encontrado por um par
-    print(f'Foi encontrado isso: {args}')
-    Main_Peer.Add_connection(args)
-    return "oi"
+    print(f'Novo par encontrado: {args}')
+    args = json.loads(args)
+    Main_Peer.SuccefullConnection.add((args[0],args[1]))
+    return "Success"
 
 
 if __name__ == '__main__': #Teste
@@ -99,10 +112,12 @@ if __name__ == '__main__': #Teste
         sender = Thread(target=par.ARP)
         receiver = Thread(target=app.run, args=("0.0.0.0",port,))
 
-        sender.start()
         receiver.start()
+        sender.start()
+
     except Exception as expt:
         print(expt)
+        
     finally: 
         receiver.join()
         sender.join()
