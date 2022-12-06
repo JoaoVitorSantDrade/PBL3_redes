@@ -11,6 +11,8 @@ from bs4 import BeautifulSoup
 import json
 from threading import Thread
 import time
+import p2pConfig as conf
+from peer import Peer
 
 # Lista de produtos no consorcio de marketplaces
 lista_produtos = defaultdict(dict)
@@ -22,15 +24,32 @@ pos=0
 
 
 class marketplace:
-    def __init__(self,host,port,name) -> None:
+    def __init__(self, host:str, port:int, name:str):
         self.id = randint(1,100)
-        self.host = host
-        self.port = port
-        self.name = name
-        self.peers:list = list()
+        self.host:str = host
+        self.port:int = port
+        self.name:str = name
+        self.peers:list = self.Generate_peer_list()
+        self.peer_comm()
 
-    def peer_comm(self):
-        pass
+
+    def Generate_peer_list(self):
+        peer_list:list = list()
+        r = range(self.port,self.port+conf.ALLOCATED_PORT_RANGE)
+        for i in r:
+            new_peer = Peer(self.host,i,self.port)
+            peer_list.append(new_peer)
+        return peer_list
+
+    def peer_comm(self, msg):
+        for peer in self.peers:
+            peer:Peer
+            try:
+                if not peer.Ocupado:
+                    peer.sendMessage(msg=msg)
+            except Exception as NotAvailableNow:
+                print("Nenhum peer disponível, tente mais tarde")
+                
 
 
     def comunicacao(self):
@@ -131,14 +150,15 @@ def ap_makertplace():
             return lista_marketplaces[id]
     return lista_marketplaces
 
+
 if __name__ == '__main__':
-    host1= input("Informe o host:")
-    porta = input("Informe a porta:")
+    host= input("Informe o host:")
+    port = int(input("Informe a porta:"))
     nome = input("Informe o nome do marketplace:")
 
-    mkt = marketplace(porta,host1,nome)
+    mkt = marketplace(host,port,nome)
     
-    api = Thread(target= app.run(host= host1, port=porta))
-    com = Thread(target= mkt.comunicacao)
-    api.start()
-    com.start()
+    # applicativo = Thread(target= app.run(host= host1, port=porta))
+    # com = Thread(target= mkt.comunicacao)
+    # applicativo.start()
+    # com.start()

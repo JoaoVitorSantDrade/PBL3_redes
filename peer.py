@@ -11,17 +11,12 @@ from flask import Flask, request
 from threading import Thread
 
 
-class Peer_Type(Enum):
-    UNDEFINED = 0
-    SENDER = 1
-    RECIEVER = 2
 
 class Peer:
-    def __init__(self, type:Peer_Type,host:str, port:int, Marketplace_Port:int):
+    def __init__(self,host:str, port:int, Marketplace_Port:int):
         self.id:uuid = uuid.uuid4()
         self.connection:set = set()
         self.SuccefullConnection:set = set()
-        self.type:Peer_Type = type
         self.Host:str = host
         self.Port:int = port
         self.MK_Port:int = Marketplace_Port
@@ -44,7 +39,6 @@ class Peer:
     def ARP(self):
         self.Ocupado = True
         try:
-            assert self.type == Peer_Type.SENDER
 
             retry = Retry(backoff_factor=0.005, connect=2)
             session = requests.Session()
@@ -106,7 +100,7 @@ if __name__ == '__main__': #Teste
 
     IP = input("Digite o IP: ")
     port = int(input("Digite a Porta: "))
-    par = Peer(Peer_Type.SENDER, host=IP, port=port,Marketplace_Port=10030)
+    par = Peer(host=IP, port=port,Marketplace_Port=10030)
     Main_Peer = par
     par.Add_connection("http://localhost")
     try:
