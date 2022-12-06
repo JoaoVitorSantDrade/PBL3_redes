@@ -2,28 +2,18 @@ from flask import Flask, request
 from random import randint
 from collections import defaultdict
 import os
-import operator
 import time
 from threading import Thread
-import codecs
-from bs4 import BeautifulSoup
 import json
-from threading import Thread
 import time
 import p2pConfig as conf
 from peer import Peer
 import uuid
 
-
-# Lista de Marketplaces no consorcio 
-lista_marketplaces = defaultdict(dict)
-#fila de requisições
-fila_de_comandos = defaultdict(dict)
-pos=0
-
 main_marketplace = None
 
-class marketplace:
+
+class Market:
     def __init__(self, host:str, port:int, name:str):
         self.id:uuid = uuid.uuid4()
         self.host:str = host
@@ -31,12 +21,14 @@ class marketplace:
         self.name:str = name
         self.peers:list = self.Generate_peer_list()
         self.lista_produtos:dict = defaultdict(dict)
+        main_marketplace = self
 
     def Generate_peer_list(self):
         peer_list:list = list()
         r = range(self.port,self.port+conf.ALLOCATED_PORT_RANGE)
         for i in r:
-            new_peer = Peer(self.host,i,self.port)
+            print(i)
+            new_peer = Peer(self.host,i,self)
             peer_list.append(new_peer)
         return peer_list
 
@@ -52,6 +44,12 @@ class marketplace:
     def add_products(self, json):
         id = uuid.uuid1()
         self.lista_produtos[id].update({json})
+    
+    def enviar_product(self):
+        #Utilizar os pares para enviar seus produtos para os peer, que enviarão para outros marketplaces
+        pass
+
+
 
 app = Flask(__name__)
 @app.route('/api', methods=['GET'])
@@ -64,7 +62,7 @@ def api():
 def api_cad():
     args = request.args
     args = args.to_dict()
-
+    lista = main_marketplace.lista_produtos
     if "id" in args:
         if args["id"] != "":
             id = str(args["id"])
@@ -73,11 +71,12 @@ def api_cad():
             preco = str(args["preco"])
             id_marketplace = str(args["idMP"])
             loja = str(args["loja"])
-            return "Cadastrei "+qtd+" "+produto
+            product = f'{id} '
+            return f'Foram cadastrado(s) {qtd} {produto}'
     return "produto não informado"
 
 # Consulta produtos do MarketPlace
-@app.route('/api/produto', methods=['GET'])
+@app.route('/api/mercadoria', methods=['GET'])
 def api_produtos():
     args = request.args
     args = args.to_dict()
@@ -134,14 +133,24 @@ def ap_makertplace():
 
 
 if __name__ == '__main__':
-    host= input("Informe o host:")
-    port = int(input("Informe a porta:"))
-    nome = input("Informe o nome do marketplace:")
+    host= input("Informe o IP: ")
+    port = int(input("Informe a Porta: "))
+    nome = input("Informe o nome do marketplace: ")
 
-    mkt = marketplace(host,port,nome)
+    mkt = Market(host,port,nome)
     
-    # applicativo = Thread(target= app.run(host= host1, port=porta))
-    # com = Thread(target= mkt.comunicacao)
-    # applicativo.start()
-    # com.start()
+    try:
+        sender = Thread(target=mkt.Generate_peer_list)
+        receiver = Thread(target=app.run, args=( host, port,))
+
+        receiver.start()
+        sender.start()
+
+
+    except Exception as expt:
+        print(expt)
+        
+    finally: 
+        receiver.join()
+        sender.join()
 
