@@ -80,8 +80,22 @@ class Peer:
         
         self.Ocupado = False
 
-    def sendMessage(self, msg):
-        pass
+    def sendMessage(self, json):
+
+        retry = Retry(backoff_factor=0.005, connect=2)
+        session = requests.Session()
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        headers = {'content-type': 'application/json'}
+        msg_id = json['id']
+        for info in self.SuccefullConnection:
+            try:
+                link = f'{info[0]}:{info[1]}'
+                r = session.post(link + "/api/produto/" + msg_id,json=json, headers=headers, timeout=0.002)
+            except Exception as exp:
+                print(exp)
+                pass
 
 Main_Peer:Peer = None
 
@@ -95,6 +109,15 @@ def arp():
     Main_Peer.SuccefullConnection.add((args[0],args[1]))
     return "Success"
 
+@app.route('/api/produto/<id_produto>', methods=['GET', 'POST', 'PUT'])
+def updateProduto(id_produto):
+    if request.method == 'GET':
+        pass
+    elif request.method == "POST":
+        pass
+    elif request.method == "PUT":
+        pass
+    return "Error"
 
 if __name__ == '__main__': #Teste
 
