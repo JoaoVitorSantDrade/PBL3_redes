@@ -12,10 +12,11 @@ class vector_clock:
     def update(self,sClock):
         i =0
         while( i< self.count):
-            if( sClock.clock[i] > self.clock[i]):
-                self.clock[i] = sClock.clock[i]
+            if( sClock[i] > self.clock[i]):
+                self.clock[i] = sClock[i]
             i = i+1
         self.clock[int(self.id)] +=1 
+
     def event(self):
         id = int(self.id)
         self.clock[id] = self.clock[id] + 1
@@ -30,7 +31,7 @@ def main():
     ck3.print_clock()
 
     ck1.event()
-    ck2.update(ck1)
+    ck2.update(ck1.clock)
 
     print("\nApós aplicar lamport")
     ck1.print_clock()
@@ -38,7 +39,7 @@ def main():
     ck3.print_clock()
 
     ck1.event()
-    ck2.update(ck1)
+    ck2.update(ck1.clock)
 
     print("\nApós aplicar lamport")
     ck1.print_clock()
@@ -46,7 +47,7 @@ def main():
     ck3.print_clock()
 
     ck3.event()
-    ck1.update(ck3)
+    ck1.update(ck3.clock)
 
     print("\nApós aplicar lamport")
     ck1.print_clock()
