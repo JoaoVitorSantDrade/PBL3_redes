@@ -11,15 +11,14 @@ from flask import Flask, request
 from threading import Thread
 
 
-
 class Peer:
-    def __init__(self,host:str, port:int, Marketplace_Port:int):
+    def __init__(self,host:str, port:int, marketplace):
         self.id:uuid = uuid.uuid4()
         self.connection:set = set()
         self.SuccefullConnection:set = set()
         self.Host:str = host
         self.Port:int = port
-        self.MK_Port:int = Marketplace_Port
+        self.Market = marketplace
         self.Ocupado:bool = False
 
     def Add_connection(self, url:str):
@@ -39,28 +38,23 @@ class Peer:
     def ARP(self):
         self.Ocupado = True
         try:
-
-            retry = Retry(backoff_factor=0.005, connect=2)
-            session = requests.Session()
-            adapter = HTTPAdapter(max_retries=retry)
-            session.mount('http://', adapter)
-            session.mount('https://', adapter)
             headers = {'content-type': 'application/json'}
         except Exception as exp:
             print(exp)
         try:
             for url in self.connection:
-                for i in conf.PORT_RANGE:
-                    if i < self.MK_Port or i >= (self.MK_Port+30):
+                for port in conf.PORT_RANGE:
+                    if port < self.Market.port or port >= self.Market.port+conf.ALLOCATED_PORT_RANGE:
                         try:
-                            link = url + ":" + str(i)
+                            link = f'http://{url}:{port}/api/connection'
                             my_info = (self.Host, self.Port)
-                            peer_info = (url,str(i))
-                            r = session.post(link + "/api/connection" , json=my_info, headers=headers, timeout=0.002) #Adiciona par encontrado na lista
+                            peer_info = (url,str(port))
+                            r = requests.post(link, json= my_info, headers= headers, timeout= 0.010, ) #Adiciona par encontrado na lista
                             print(f"Par encontrado em: {link} - {r.status_code}")
                             self.SuccefullConnection.add(peer_info)
+                            r.close()
                         except requests.exceptions.ConnectionError as errc:
-                            print(f"Falha ao conectar em :{i}")
+                            print(f"Falha ao conectar em :{port}")
                             pass
                         except requests.exceptions.Timeout as errt:
                             print("Timeout")
@@ -74,28 +68,32 @@ class Peer:
                         except Exception as exp:
                             print(exp)
                             pass
-                    
+                print(f'Busca finalizada em: {url}')
         except Exception as MainFailure:
             print(MainFailure)
         
         self.Ocupado = False
 
-    def sendMessage(self, json):
-
-        retry = Retry(backoff_factor=0.005, connect=2)
-        session = requests.Session()
-        adapter = HTTPAdapter(max_retries=retry)
-        session.mount('http://', adapter)
-        session.mount('https://', adapter)
+    def sendMessage(self, msg):
+        err = None
         headers = {'content-type': 'application/json'}
-        msg_id = json['id']
-        for info in self.SuccefullConnection:
+        for info in self.SuccefullConnection.copy():
             try:
-                link = f'{info[0]}:{info[1]}'
-                r = session.post(link + "/api/produto/" + msg_id,json=json, headers=headers, timeout=0.002)
+                link = f'http://{info[0]}:{info[1]}/api/produto'
+                r = requests.post(link,json= msg, headers=headers, timeout= 2)
+                response = r.text
+                r.close()
+                print(f"Enviado com sucesso - {link}")
+                return response
+            except requests.exceptions.InvalidURL as erriu:
+                print("Invalid URL")
+                err = erriu
+            except requests.exceptions.ConnectionError as errc:
+                err = errc
+                print(f"Não enviou - {link}")
             except Exception as exp:
-                print(exp)
-                pass
+                err = exp
+                print(exp)                                 
 
 Main_Peer:Peer = None
 
@@ -109,6 +107,20 @@ def arp():
     Main_Peer.SuccefullConnection.add((args[0],args[1]))
     return "Success"
 
+@app.route('/api/produto', methods=['GET', 'POST', 'PUT'])
+def updateProdutoList():
+    if request.method == 'GET':
+        return f"Get - {request.host}"
+        
+    elif request.method == "POST":
+
+        return "Yes"
+        
+    elif request.method == "PUT":
+        return "Put"
+        
+    return "Error"
+
 @app.route('/api/produto/<id_produto>', methods=['GET', 'POST', 'PUT'])
 def updateProduto(id_produto):
     if request.method == 'GET':
@@ -120,18 +132,31 @@ def updateProduto(id_produto):
     return "Error"
 
 if __name__ == '__main__': #Teste
+    from marketplace import Market
+    x = {
+            "id": str(uuid.uuid1()),
+            "nome": "GPU",
+            "qtd": 2,
+            "preco": 3.5,
+            "id_marketplace": str(uuid.uuid4()),
+            "loja": "Jota Jota",
+        }
 
     IP = input("Digite o IP: ")
     port = int(input("Digite a Porta: "))
-    par = Peer(host=IP, port=port,Marketplace_Port=10030)
+    market = Market("localhost",port,"JotaJota")
+    par = Peer(host=IP, port=port, marketplace=market)
     Main_Peer = par
-    par.Add_connection("http://localhost")
+    par.Add_connection("localhost")
     try:
         sender = Thread(target=par.ARP)
-        receiver = Thread(target=app.run, args=("0.0.0.0",port,))
+        receiver = Thread(target=app.run, args=( IP, port,))
+        test = Thread(target=par.sendMessage, args=(x,))
 
         receiver.start()
         sender.start()
+        test.start()
+
 
     except Exception as expt:
         print(expt)
@@ -139,3 +164,4 @@ if __name__ == '__main__': #Teste
     finally: 
         receiver.join()
         sender.join()
+        test.join()
