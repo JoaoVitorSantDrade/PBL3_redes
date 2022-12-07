@@ -21,7 +21,6 @@ class Market:
         self.name:str = name
         self.peers:list = self.Generate_peer_list()
         self.lista_produtos:dict = defaultdict(dict)
-        main_marketplace = self
 
     def Generate_peer_list(self):
         peer_list:list = list()
@@ -72,7 +71,8 @@ def api_cad():
             id_marketplace = str(args["idMP"])
             loja = str(args["loja"])
             product = f'{id} '
-            return f'Foram cadastrado(s) {qtd} {produto}'
+            
+            return f'Foram cadastrado(s) {qtd} {produto}(s)'
     return "produto não informado"
 
 # Consulta produtos do MarketPlace
@@ -84,11 +84,11 @@ def api_produtos():
     if "id" in args:
         if args["id"] != "":
             id = str( args["id"])
-            return lista_produtos[id]
+            return main_marketplace.lista_produtos[id]
     elif "produto" in args:
         js = defaultdict(dict)
         i=0
-        for key, value in lista_produtos.items():
+        for key, value in main_marketplace.lista_produtos.items():
             if value["nome"] == str(args["produto"]):
                 x={
                     "id": key,
@@ -101,7 +101,7 @@ def api_produtos():
                 js[str(i)].update(x)
                 i = i + 1
         return js
-    return lista_produtos
+    return main_marketplace.lista_produtos
 
 # Cadastra MarketPlaces
 @app.route('/api/marketplaces/cadastro', methods=['GET'])
@@ -138,7 +138,7 @@ if __name__ == '__main__':
     nome = input("Informe o nome do marketplace: ")
 
     mkt = Market(host,port,nome)
-    
+    main_marketplace = mkt
     try:
         sender = Thread(target=mkt.Generate_peer_list)
         receiver = Thread(target=app.run, args=( host, port,))
