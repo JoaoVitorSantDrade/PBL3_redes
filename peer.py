@@ -9,6 +9,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from flask import Flask, request
 from threading import Thread
+from transaction import transaction as trs
 
 
 class Peer:
@@ -93,7 +94,27 @@ class Peer:
                 print(f"Não enviou - {link}")
             except Exception as exp:
                 err = exp
-                print(exp)                                 
+                print(exp)        
+
+    def sendTransaction(self, transaction:trs):
+        headers = {'content-type': 'application/json'}
+        for info in self.SuccefullConnection.copy():
+            try:
+                link = f'http://{info[0]}:{info[1]}/api/transaction'
+                r = requests.post(link, json=transaction, headers=headers, timeout= 2)
+                response = r.text
+                r.close()
+                print(f"Transação enviada com sucesso - {link}")
+                return response
+            except requests.exceptions.InvalidURL as erriu:
+                print("Invalid URL")
+                err = erriu
+            except requests.exceptions.ConnectionError as errc:
+                err = errc
+                print(f"Transação não enviada - {link}")
+            except Exception as exp:
+                err = exp
+                print(exp)              
 
 Main_Peer:Peer = None
 
@@ -125,12 +146,15 @@ def updateProdutoList():
         
     return "Error"
 
-@app.route('/api/produto/<id_produto>', methods=['GET', 'POST', 'PUT'])
+@app.route('/api/transaction', methods=['GET', 'POST', 'PUT'])
 def updateProduto(id_produto):
     if request.method == 'GET':
         pass
     elif request.method == "POST":
-        pass
+        #Main_Peer.Market.add_ #Esperar o marketplace resolver
+        print(f"Transacao recebida! - {request.json}")
+        return True
+        
     elif request.method == "PUT":
         pass
     return "Error"

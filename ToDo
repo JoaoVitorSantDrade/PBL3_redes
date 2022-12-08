@@ -13,10 +13,11 @@
     Mensagens caso consiga/não consiga
 
 4. Sincronização da informação
-    Protocolo simulando carrinho de compras
+    1. Protocolo simulando carrinho de compras
         1. cada compra individual é uma transação
-    Simular tentativas de compras
-    Sincronização das compras entre diversos marketplaces
+        2. o carrinho de compras deve ser cancelado caso uma transação não ocorra com sucesso (Esperar confirmação)
+    2. Simular tentativas de compras
+    3. Sincronização das compras entre diversos marketplaces
         1.  Incrementar relogio logico
         2.  Enviar relogio logico para todos marketplaces
         3.  Executar método update no relogio

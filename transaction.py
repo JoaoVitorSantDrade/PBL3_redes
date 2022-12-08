@@ -1,7 +1,7 @@
 import uuid
 from vector import vector_clock
 class transaction:
-    def __init__(self,clock:vector_clock):
+    def __init__(self,clock:vector_clock, item:dict):
         self.id:uuid = uuid.uuid4()
         self.clock:vector_clock = clock
         self.itens:dict = dict()

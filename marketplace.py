@@ -1,5 +1,4 @@
 from flask import Flask, request
-from random import randint
 from collections import defaultdict
 import os
 import time
@@ -9,26 +8,29 @@ import time
 import p2pConfig as conf
 from peer import Peer
 import uuid
+from vector import vector_clock
+import concurrent.futures
+from transaction import transaction as trs
 
 main_marketplace = None
 
 
 class Market:
-    def __init__(self, host:str, port:int, name:str):
+    def __init__(self, host:str, port:int, name:str, id:int):
         self.id:uuid = uuid.uuid4()
         self.host:str = host
         self.port:int = port
         self.name:str = name
         self.peers:list = self.Generate_peer_list()
         self.lista_produtos:dict = defaultdict(dict)
-        self.fila_transacao:dict = defaultdict(dict)
+        self.fila_transacao:list = list()
         self.fila_alteracao_produto:dict = defaultdict(dict)
+        self.lamport_clock:vector_clock = vector_clock( id, 0)
 
     def Generate_peer_list(self):
         peer_list:list = list()
         r = range(self.port,self.port+conf.ALLOCATED_PORT_RANGE)
         for i in r:
-            print(i)
             new_peer = Peer(self.host,i,self)
             peer_list.append(new_peer)
         return peer_list
@@ -41,16 +43,41 @@ class Market:
                     peer.sendMessage(msg=msg)
             except Exception as NotAvailableNow:
                 print("Nenhum peer disponível, tente mais tarde")
-                
+
+    def transaction(self, product):
+        transaction = trs(self.lamport_clock, product)
+        #Transação é somente com produtos
+        #Colocamos a nossa transação na nossa fila e a enviamos para outros marketplaces também a executar
+        try:
+            futures = None
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                for peer in self.peers:
+                    futures = [executor.submit(peer.sendTransaction, transaction)]
+                # Tarefa para outros marketplaces procesarem a transação
+                # Tarefa para o proprio marketplace processar a transação
+            print(f.result() for f in futures)
+        except Exception as exp:
+            print(exp)
+
+                    
     def add_products(self, json):
         id = uuid.uuid1()
-        self.lista_produtos[id].update({json})
+        self.lista_produtos[id].update({json}) # Errado, tem que ir pra fila de alteração
+        return True
     
+    def add_transaction(self, transaction): #Adiciona transação somente para este marketplace
+        pass
+
     def enviar_product(self):
         #Utilizar os pares para enviar seus produtos para os peer, que enviarão para outros marketplaces
         pass
 
-
+    def thread_fila_transacao(self):
+        #Thread que executa os elementos na fila de transação
+        pass
+    def thread_fila_alteracao(self):
+        #Thread que executa os elementos na fila de alteracao
+        pass
 
 app = Flask(__name__)
 @app.route('/api', methods=['GET'])
@@ -128,18 +155,31 @@ def ap_cad_makertplace():
     return  "Nenhum market place informado"
 
 if __name__ == '__main__':
+
+    x = {
+            "id": str(uuid.uuid1()),
+            "nome": "GPU",
+            "qtd": 2,
+            "preco": 3.5,
+            "id_marketplace": str(uuid.uuid4()),
+            "loja": "Jota Jota",
+        }
+
     host= input("Informe o IP: ")
     port = int(input("Informe a Porta: "))
     nome = input("Informe o nome do marketplace: ")
 
-    mkt = Market(host,port,nome)
+    mkt = Market(host,port,nome, int(uuid.uuid1()) )
     main_marketplace = mkt
     try:
         sender = Thread(target=mkt.Generate_peer_list)
+        tester = Thread(target=mkt.transaction, args=(x,))
         receiver = Thread(target=app.run, args=( host, port,))
 
         receiver.start()
         sender.start()
+        time.sleep(5)
+        tester.start()
 
 
     except Exception as expt:
@@ -148,4 +188,5 @@ if __name__ == '__main__':
     finally: 
         receiver.join()
         sender.join()
+        tester.join()
 
