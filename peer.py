@@ -113,7 +113,11 @@ def updateProdutoList():
         return f"Get - {request.host}"
         
     elif request.method == "POST":
-
+        # Receber o request
+        # Ler o Jason
+        # Salvar Jason no marketplace cadastrado
+        # Marketplace terá uma fila paea cadastro dos itens, com verificação de item duplicado
+        # Se tudo foi realizado retorna um Yes
         return "Yes"
         
     elif request.method == "PUT":

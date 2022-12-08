@@ -14,9 +14,16 @@
 
 4. Sincronização da informação
     Protocolo simulando carrinho de compras
+        1. cada compra individual é uma transação
     Simular tentativas de compras
     Sincronização das compras entre diversos marketplaces
+        1.  Incrementar relogio logico
+        2.  Enviar relogio logico para todos marketplaces
+        3.  Executar método update no relogio
+        4.  Repetir até que todos sejam sincornizados
+        5.  Agora os eventos podem ser ordenados
 
 5. Front-end
     Fazer um front-end básico
     Fazer um css
+

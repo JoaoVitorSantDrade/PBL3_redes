@@ -21,6 +21,8 @@ class Market:
         self.name:str = name
         self.peers:list = self.Generate_peer_list()
         self.lista_produtos:dict = defaultdict(dict)
+        self.fila_transacao:dict = defaultdict(dict)
+        self.fila_alteracao_produto:dict = defaultdict(dict)
 
     def Generate_peer_list(self):
         peer_list:list = list()
