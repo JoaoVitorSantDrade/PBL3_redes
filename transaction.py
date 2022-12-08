@@ -6,7 +6,7 @@ class transaction:
     def __init__(self,clock:vector_clock, item:dict):
         self.id:uuid = uuid.uuid4()
         self.clock:vector_clock = clock
-        self.itens:dict = dict()
+        self.itens:dict = item
         self.type:int = 0 # 0 Transação comum | 1 Adicionar produto | 2 Remover Produto | 3 Apagar Produto
         self.status:int = 0
     
@@ -17,11 +17,10 @@ class transaction:
         del self
     
     def to_dict(self):
-        item_values = json.dumps(self.itens)
         x = {
             "id": str(self.id),
             "clock":self.clock.to_dict(), #olhar isso
-            "item":item_values,
+            "item":self.itens,
             "type":self.type,
             "status":self.status
         }

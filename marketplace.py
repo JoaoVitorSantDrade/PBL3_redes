@@ -60,13 +60,14 @@ class Market:
     def transaction(self, product):
         while True:
             transaction = trs(self.lamport_clock, product)
+
             #Transação é somente com produtos
             #Colocamos a nossa transação na nossa fila e a enviamos para outros marketplaces também a executar
             try:
                 futures = []
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     for peer in self.peers:
-                        futures.append([executor.submit(peer.sendTransaction, transaction)])
+                        futures.append([executor.submit(peer.sendTransaction ,transaction)])
                     # Tarefa para outros marketplaces procesarem a transação
                     # Tarefa para o proprio marketplace processar a transação
                 #print(f.result() for f in futures)

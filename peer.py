@@ -96,7 +96,7 @@ class Peer:
                             response = r.text
                             r.close()
                             print(f"Enviado com sucesso - {link} - {r.status_code}")
-                            return response
+                            #return response
                         except requests.exceptions.InvalidURL as erriu:
                             print("Invalid URL")
                             err = erriu
@@ -125,7 +125,7 @@ class Peer:
                 response = r.text
                 r.close()
                 print(f"essa foi a response: {response}")
-                return response
+                #return response
             except requests.exceptions.InvalidURL as erriu:
                 print("Invalid URL")
                 err = erriu
