@@ -56,7 +56,7 @@ def api():
     return "Marketplace Operando"
 
 # Pesca
-# /api/cadastro/?id=1&produto=Carro&qtd=3&preco=12&idMP=1&loja=Armario_seu_Kleber
+# /api/cadastro/?id=1&produto=Carro&qtd=3&preco=12&loja=Armario_seu_Kleber
 @app.route('/api/cadastro/', methods=['GET'])
 def api_cad():
     args = request.args
@@ -68,11 +68,15 @@ def api_cad():
             produto = str(args["produto"])
             qtd = str(args["qtd"])
             preco = str(args["preco"])
-            id_marketplace = str(args["idMP"])
             loja = str(args["loja"])
             product = f'{id} '
-            
-            return f'Foram cadastrado(s) {qtd} {produto}(s)'
+            main_marketplace.lista_produtos[id].update({"id":id})
+            main_marketplace.lista_produtos[id].update({"produto":produto})
+            main_marketplace.lista_produtos[id].update({"qtd":qtd})
+            main_marketplace.lista_produtos[id].update({"preco":preco})
+            main_marketplace.lista_produtos[id].update({"loja":loja})
+            print(main_marketplace.lista_produtos)
+            return "cadastrei "+qtd+" "+produto+" da  loja "+loja
     return "produto não informado"
 
 # Consulta produtos do MarketPlace
@@ -114,23 +118,12 @@ def ap_cad_makertplace():
             id = str( args["id"])
             host = str( args["host"])
             porta = str(args["port"])
-            lista_marketplaces[id].update({"id":id})
-            lista_marketplaces[id].update({"host":host})
-            lista_marketplaces[id].update({"port":porta})
+            main_marketplace.lista_produtos[id].update({"id":id})
+            
+            main_marketplace.lista_produtos[id].update({"host":host})
+            main_marketplace.lista_produtos[id].update({"port":porta})
             return "Marketplace cadastrado"
     return  "Nenhum market place informado"
-
-@app.route('/api/marketplaces', methods=['GET'])
-def ap_makertplace():
-    args = request.args
-    args = args.to_dict()
-
-    if "id" in args:
-        if args["id"] !="":
-            id = str( args["id"])
-            return lista_marketplaces[id]
-    return lista_marketplaces
-
 
 if __name__ == '__main__':
     host= input("Informe o IP: ")
