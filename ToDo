@@ -1,30 +1,32 @@
 1. Conexao
-    Feita somente quando necessaria comunicação (10 Pipes por marketplaces)
-    Busca por pares na rede
-    Tentar se conectar aos pares na rede
-    Mensagem caso consiga/não consiga
+    1. comunicação (10 conexões bi-direcionais , 1 exclusiva p/ o marketplace ) - Feito
+    2. Busca por pares na rede - Feito
+    3. Tentar se conectar aos pares na rede - Feito
+    4. Mensagem caso consiga/não consiga - Feito
 
 2. Envio de mensagens
-    Protocolo p/ envio de mensagens
-    Confirmação de recebimento
+    Protocolo p/ envio de mensagens - Feito
+    Confirmação de recebimento - Feito
 
 3. Envio de Jsons
-    Enviar Jsons
-    Mensagens caso consiga/não consiga
+    1. Enviar Jsons - Feito
+    2. Mensagens caso consiga/não consiga - Feito
+    3. Pares enviam seus dados para o seu marketplace - Feito
+        1. Erro ao receber conexão de novos Pares - Corringido
 
 4. Sincronização da informação
-    1. Protocolo simulando carrinho de compras
-        1. cada compra individual é uma transação
-        2. o carrinho de compras deve ser cancelado caso uma transação não ocorra com sucesso (Esperar confirmação)
-    2. Simular tentativas de compras
-    3. Sincronização das compras entre diversos marketplaces
-        1.  Incrementar relogio logico
-        2.  Enviar relogio logico para todos marketplaces
-        3.  Executar método update no relogio
+    1. Protocolo simulando carrinho de compras - Incompleto
+        1. cada compra individual é uma transação - Feito
+        2. o carrinho de compras deve ser cancelado caso uma transação não ocorra com sucesso (Esperar confirmação) - Proximo
+    2. Simular tentativas de compras - Feito
+    3. Sincronização das compras entre diversos marketplaces - Feito
+        1.  Incrementar relogio logico - Proximo
+        2.  Enviar relogio logico para todos marketplaces - Feito
+        3.  Executar método update no relogio - Proximo
         4.  Repetir até que todos sejam sincornizados
-        5.  Agora os eventos podem ser ordenados
+        5.  Agora os eventos podem ser ordenados - Proximo
 
-5. Front-end
-    Fazer um front-end básico
-    Fazer um css
+5. Front-end (utiilzar o Terminal pra adicionar e remover marketplaces)
+    1. Fazer um front-end básico - Não fazer 
+    2. Fazer um css - Não fazer
 

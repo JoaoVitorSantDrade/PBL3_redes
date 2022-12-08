@@ -1,9 +1,10 @@
+import p2pConfig as conf
 
 class vector_clock:
-    def __init__(self,id,count) -> None:
+    def __init__(self,id) -> None:
         self.id = id
-        self.clock = [0 for i in range(count)]
-        self.count = count
+        self.count = int(conf.MARKETPLACE_QUANTITY)
+        self.clock = [0 for i in range(self.count)] #Teremos 10 posições, escolhemos isso como padrão do projeto
 
     def print_clock(self):
         print("relogio de:",self.id)
@@ -20,6 +21,14 @@ class vector_clock:
     def event(self):
         id = int(self.id)
         self.clock[id] = self.clock[id] + 1
+
+    def to_dict(self):
+        x = {
+            "id":self.id,
+            "count":self.count,
+            "clock":self.clock
+        }
+        return x
 
 def main():
     ck1 = vector_clock(0,3)

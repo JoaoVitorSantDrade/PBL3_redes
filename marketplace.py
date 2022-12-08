@@ -7,6 +7,7 @@ import json
 import time
 import p2pConfig as conf
 from peer import Peer
+import peer as fullPeer
 import uuid
 from vector import vector_clock
 import concurrent.futures
@@ -21,19 +22,31 @@ class Market:
         self.host:str = host
         self.port:int = port
         self.name:str = name
-        self.peers:list = self.Generate_peer_list()
+        self.peers:list = None
         self.lista_produtos:dict = defaultdict(dict)
         self.fila_transacao:list = list()
         self.fila_alteracao_produto:dict = defaultdict(dict)
-        self.lamport_clock:vector_clock = vector_clock( id, 0)
+        self.lamport_clock:vector_clock = vector_clock(int(id))
 
     def Generate_peer_list(self):
         peer_list:list = list()
-        r = range(self.port,self.port+conf.ALLOCATED_PORT_RANGE)
+        connection_set = set()
+        FirstTime = True
+        r = range(self.port + 1,self.port+conf.ALLOCATED_PORT_RANGE)
         for i in r:
-            new_peer = Peer(self.host,i,self)
+            new_peer = Peer(self.host,i,self, FirstTime)
+            print(f'Par {i} foi gerado')
+            if FirstTime == True:
+                connection_set = new_peer.ShowConnections()
+                FirstTime = False
+            else:
+                new_peer.connection = connection_set  
+    
+            peer_server = Thread(target=fullPeer.Peer_run_server, args=( new_peer,), daemon=True)
+            peer_server.start()
+                
             peer_list.append(new_peer)
-        return peer_list
+        self.peers = peer_list
 
     def peer_comm(self, msg):
         for peer in self.peers:
@@ -45,19 +58,26 @@ class Market:
                 print("Nenhum peer disponível, tente mais tarde")
 
     def transaction(self, product):
-        transaction = trs(self.lamport_clock, product)
-        #Transação é somente com produtos
-        #Colocamos a nossa transação na nossa fila e a enviamos para outros marketplaces também a executar
-        try:
-            futures = None
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                for peer in self.peers:
-                    futures = [executor.submit(peer.sendTransaction, transaction)]
-                # Tarefa para outros marketplaces procesarem a transação
-                # Tarefa para o proprio marketplace processar a transação
-            #print(f.result() for f in futures)
-        except Exception as exp:
-            print(exp)
+        while True:
+            transaction = trs(self.lamport_clock, product)
+            #Transação é somente com produtos
+            #Colocamos a nossa transação na nossa fila e a enviamos para outros marketplaces também a executar
+            try:
+                futures = []
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    for peer in self.peers:
+                        futures.append([executor.submit(peer.sendTransaction, transaction)])
+                    # Tarefa para outros marketplaces procesarem a transação
+                    # Tarefa para o proprio marketplace processar a transação
+                #print(f.result() for f in futures)
+                #for future, in concurrent.futures.as_completed(futures):
+                    #print(f'{future.result()} - Teste de Threads')
+                    #pass
+            except Exception as exp:
+                print(exp)
+        
+            time.sleep(2)
+
 
                     
     def add_products(self, json):
@@ -98,14 +118,13 @@ def api_cad():
             qtd = str(args["qtd"])
             preco = str(args["preco"])
             loja = str(args["loja"])
-            product = f'{id} '
             main_marketplace.lista_produtos[id].update({"id":id})
             main_marketplace.lista_produtos[id].update({"produto":produto})
             main_marketplace.lista_produtos[id].update({"qtd":qtd})
             main_marketplace.lista_produtos[id].update({"preco":preco})
             main_marketplace.lista_produtos[id].update({"loja":loja})
             print(main_marketplace.lista_produtos)
-            return "cadastrei "+qtd+" "+produto+" da  loja "+loja
+            return f"cadastrei {qtd} x {produto} em: {loja}"
     return "produto não informado"
 
 # Consulta produtos do MarketPlace
@@ -137,21 +156,9 @@ def api_produtos():
     return main_marketplace.lista_produtos
 
 # Cadastra MarketPlaces
-@app.route('/api/marketplaces/cadastro', methods=['GET'])
-def ap_cad_makertplace():
-    args = request.args
-    args = args.to_dict()
-
-    if "id" in args:
-        if args["id"] !="":
-            id = str( args["id"])
-            host = str( args["host"])
-            porta = str(args["port"])
-            main_marketplace.lista_produtos[id].update({"id":id})
-            
-            main_marketplace.lista_produtos[id].update({"host":host})
-            main_marketplace.lista_produtos[id].update({"port":porta})
-            return "Marketplace cadastrado"
+@app.route('/api/transaction', methods=['POST'])
+def ap_transaction_makertplace():
+    print(request.json)
     return  "Nenhum market place informado"
 
 if __name__ == '__main__':
@@ -170,15 +177,13 @@ if __name__ == '__main__':
     nome = input("Informe o nome do marketplace: ")
 
     mkt = Market(host,port,nome, int(uuid.uuid1()) )
+    mkt.Generate_peer_list()
     main_marketplace = mkt
     try:
-        sender = Thread(target=mkt.Generate_peer_list)
         tester = Thread(target=mkt.transaction, args=(x,))
         receiver = Thread(target=app.run, args=( host, port,))
 
         receiver.start()
-        sender.start()
-        time.sleep(5)
         tester.start()
 
 
@@ -187,6 +192,5 @@ if __name__ == '__main__':
         
     finally: 
         receiver.join()
-        sender.join()
         tester.join()
 
