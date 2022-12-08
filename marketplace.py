@@ -34,7 +34,7 @@ class Market:
         FirstTime = True
         r = range(self.port + 1,self.port+conf.ALLOCATED_PORT_RANGE)
         for i in r:
-            new_peer = Peer(self.host,i,self, FirstTime)
+            new_peer = Peer(self.host,port= i,marketplace=self,connections= FirstTime)
             print(f'Par {i} foi gerado')
             if FirstTime == True:
                 connection_set = new_peer.ShowConnections()

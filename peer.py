@@ -12,6 +12,7 @@ from threading import Thread
 from transaction import transaction as trs
 import concurrent.futures
 
+Main_Peer = None
 
 class Peer:
     def __init__(self,host:str, port:int, marketplace, connections:bool = True):
@@ -25,14 +26,7 @@ class Peer:
         self.Initialized = False
         if connections == True:
             self.ARP() #Busca outros Peers
-        else:
-            self.SuccefullConnection = connections
-        try:
-            global Main_Peer
-            Main_Peer = self
-        except Exception as exp:
-            print(exp)
-                
+
     def Add_connection(self, url:str):
         self.connection.add(url)
 
@@ -46,7 +40,6 @@ class Peer:
             return self.SuccefullConnection
 
     def ARP(self):
-        self.Ocupado = True
         try:
             headers = {'content-type': 'application/json'}
         except Exception as exp:
@@ -124,9 +117,7 @@ class Peer:
 
     def sendTransaction(self, transaction:trs):
         headers = {'content-type': 'application/json'}
-        List = self.SuccefullConnection.copy()
-        print(f'\nLista Completa - {List} - \n')
-        for info in list(List):
+        for info in self.SuccefullConnection:
             print(f'Item da lista: {info}')
             try:
                 link = f'http://{info[0]}:{info[1]}/api/transaction' 
@@ -145,7 +136,6 @@ class Peer:
                 err = exp
                 print(exp)              
 
-Main_Peer:Peer = None
 
 app = Flask(__name__)
 
@@ -155,11 +145,13 @@ def arp():
     print(f'Par tentou se conectar: {args}')
     try:
         global Main_Peer
-        print(f'meu - {Main_Peer.SuccefullConnection} - set')
+        Main_Peer
+        Main_Peer.SuccefullConnection.add((args[0],args[1]))
+        return f"Conexão com {args} feita com sucesso", 201
+
     except Exception as exp:
         print(exp)
         return "Erro", 500
-    return f"Conexão com {args} feita com sucesso", 201
 
 @app.route('/api/produto', methods=['GET', 'POST', 'PUT'])
 def updateProdutoList():
@@ -185,7 +177,6 @@ def updateProduto():
         return "request.json", 200
     elif request.method == "POST":
         #Passar transação p/ marketplace processar
-        #Main_Peer.Market.add_ #Esperar o marketplace resolver
         print(f"Transacao recebida! - {request.host_url}")
         Main_Peer.sendToMarket(request.json)
         return f"Sucesso - {request.host}", 201
@@ -195,7 +186,9 @@ def updateProduto():
     return "Error"
 
 def Peer_run_server(peer:Peer):
-    peer_server = Thread(target=app.run, args=( peer.Host, peer.Port,))
+    global Main_Peer
+    Main_Peer = peer
+    peer_server = Thread(target=app.run, args=( Main_Peer.Host, Main_Peer.Port,))
     peer_server.start()
     peer_server.join()    
     return
@@ -216,13 +209,13 @@ def test():
     market = Market("localhost",port,"JotaJota", 2)
     par = Peer(host=IP, port=port, marketplace=market)
     par.Add_connection("localhost")
+    global Main_Peer
+    Main_Peer = par
     try:
-        sender = Thread(target=par.ARP)
         receiver = Thread(target=app.run, args=( IP, port,))
         test = Thread(target=par.sendMessage, args=(x,))
 
         receiver.start()
-        sender.start()
         test.start()
 
 
@@ -231,7 +224,6 @@ def test():
         
     finally: 
         receiver.join()
-        sender.join()
         test.join()
 
 
