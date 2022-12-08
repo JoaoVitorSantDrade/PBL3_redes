@@ -48,15 +48,6 @@ class Market:
             peer_list.append(new_peer)
         self.peers = peer_list
 
-    def peer_comm(self, msg):
-        for peer in self.peers:
-            peer:Peer
-            try:
-                if not peer.Ocupado:
-                    peer.sendMessage(msg=msg)
-            except Exception as NotAvailableNow:
-                print("Nenhum peer disponível, tente mais tarde")
-
     def transaction(self, product):
         while True:
             transaction = trs(self.lamport_clock, product)
