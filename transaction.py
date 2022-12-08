@@ -1,6 +1,5 @@
 import uuid
 from vector import vector_clock
-import json
 
 class transaction:
     def __init__(self,clock:vector_clock, item:dict):

@@ -1,16 +1,9 @@
-import socket
-import time
 import uuid
 import p2pConfig as conf
-import json
-from enum import Enum
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 from flask import Flask, request
 from threading import Thread
 from transaction import transaction as trs
-import concurrent.futures
 
 Main_Peer = None
 

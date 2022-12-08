@@ -1,16 +1,11 @@
 from flask import Flask, request
 from collections import defaultdict
-import os
-import time
 from threading import Thread
-import json
-import time
 import p2pConfig as conf
 from peer import Peer
 import peer as fullPeer
 import uuid
 from vector import vector_clock
-import concurrent.futures
 from transaction import transaction as trs
 
 main_marketplace = None
@@ -28,6 +23,7 @@ class Market:
         self.fila_alteracao_produto:dict = defaultdict(dict)
         self.lamport_clock:vector_clock = vector_clock(int(id))
 
+    #Gera os Pares do marketplace
     def Generate_peer_list(self):
         peer_list:list = list()
         connection_set = set()
@@ -48,6 +44,7 @@ class Market:
             peer_list.append(new_peer)
         self.peers = peer_list
 
+    # Envia uma transação para outros marketplaces, e a si mesmo.
     def transaction(self, product):
         transaction = trs(self.lamport_clock, product)
 
@@ -109,20 +106,22 @@ def api_cad():
             preco_produto = str(args["preco"])
             loja = str(args["loja"])
             x = {
-                "id": str(uuid.uuid1()),
+                "id": int(uuid.uuid1()),
                 "nome": nome_produto,
                 "qtd": qtd_produto,
                 "preco": preco_produto,
-                "id_marketplace": str(uuid.uuid4()),
+                "id_marketplace": main_marketplace.id,
                 "loja": loja,
             }
 
-            main_marketplace.transaction(x)
+            main_marketplace.transaction(x) #Fila de transações ainda não implementada! ByPass abaixo
+            main_marketplace.lista_produtos[x[id]].update(x) 
 
             return f"cadastrei {qtd_produto}x {nome_produto} em: {loja} [{x['id_marketplace']}]"
     return "produto não informado"
 
-# Consulta produtos do MarketPlace
+# Consulta TODOS produtos do MarketPlace
+# /api/mercadoria
 @app.route('/api/mercadoria', methods=['GET'])
 def api_produtos():
     args = request.args
