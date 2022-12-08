@@ -55,7 +55,7 @@ class Market:
                     futures = [executor.submit(peer.sendTransaction, transaction)]
                 # Tarefa para outros marketplaces procesarem a transação
                 # Tarefa para o proprio marketplace processar a transação
-            print(f.result() for f in futures)
+            #print(f.result() for f in futures)
         except Exception as exp:
             print(exp)
 
