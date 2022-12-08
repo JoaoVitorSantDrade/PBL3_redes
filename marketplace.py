@@ -49,27 +49,26 @@ class Market:
         self.peers = peer_list
 
     def transaction(self, product):
-        while True:
-            transaction = trs(self.lamport_clock, product)
+        transaction = trs(self.lamport_clock, product)
 
-            #Transação é somente com produtos
-            #Colocamos a nossa transação na nossa fila e a enviamos para outros marketplaces também a executar
-            try:
-                futures = []
-                with concurrent.futures.ThreadPoolExecutor() as executor:
-                    for peer in self.peers:
-                        futures.append([executor.submit(peer.sendTransaction ,transaction)])
-                    # Tarefa para outros marketplaces procesarem a transação
-                    # Tarefa para o proprio marketplace processar a transação
-                #print(f.result() for f in futures)
-                #for future, in concurrent.futures.as_completed(futures):
-                    #print(f'{future.result()} - Teste de Threads')
-                    #pass
-            except Exception as exp:
-                print(exp)
+        #Transação é somente com produtos
+        #Colocamos a nossa transação na nossa fila e a enviamos para outros marketplaces também a executar
+        try:
+            threads = [] #Threads a serem abertas
+            for peer in self.peers:
+                # Tarefa para outros marketplaces procesarem a transação
+                t = Thread(target=peer.sendTransaction, args=(transaction,))
+                t.start()
+                threads.append(t)
+            # Tarefa para o proprio marketplace processar a transação
+            self_t = Thread(target=self.add_transaction, args=(transaction,))
+            self_t.start()
+            threads.append(self_t)
+            for aux in threads:
+                aux.join()
+        except Exception as exp:
+            print(exp)
         
-            time.sleep(2)
-
 
                     
     def add_products(self, json):
@@ -77,7 +76,7 @@ class Market:
         self.lista_produtos[id].update({json}) # Errado, tem que ir pra fila de alteração
         return True
     
-    def add_transaction(self, transaction): #Adiciona transação somente para este marketplace
+    def add_transaction(self, product:trs): #Adiciona transação somente para este marketplace
         pass
 
     def enviar_product(self):
@@ -97,26 +96,30 @@ def api():
     return "Marketplace Operando"
 
 # Pesca
-# /api/cadastro/?id=1&produto=Carro&qtd=3&preco=12&loja=Armario_seu_Kleber
+# /api/cadastro/?produto=Carro&qtd=3&preco=12&loja=Armario_seu_Kleber
 @app.route('/api/cadastro/', methods=['GET'])
 def api_cad():
     args = request.args
     args = args.to_dict()
-    lista = main_marketplace.lista_produtos
-    if "id" in args:
-        if args["id"] != "":
-            id = str(args["id"])
-            produto = str(args["produto"])
-            qtd = str(args["qtd"])
-            preco = str(args["preco"])
+    
+    if "produto" in args:
+        if args["produto"] != "":
+            nome_produto = str(args["produto"])
+            qtd_produto = int(args["qtd"])
+            preco_produto = str(args["preco"])
             loja = str(args["loja"])
-            main_marketplace.lista_produtos[id].update({"id":id})
-            main_marketplace.lista_produtos[id].update({"produto":produto})
-            main_marketplace.lista_produtos[id].update({"qtd":qtd})
-            main_marketplace.lista_produtos[id].update({"preco":preco})
-            main_marketplace.lista_produtos[id].update({"loja":loja})
-            print(main_marketplace.lista_produtos)
-            return f"cadastrei {qtd} x {produto} em: {loja}"
+            x = {
+                "id": str(uuid.uuid1()),
+                "nome": nome_produto,
+                "qtd": qtd_produto,
+                "preco": preco_produto,
+                "id_marketplace": str(uuid.uuid4()),
+                "loja": loja,
+            }
+
+            main_marketplace.transaction(x)
+
+            return f"cadastrei {qtd_produto}x {nome_produto} em: {loja} [{x['id_marketplace']}]"
     return "produto não informado"
 
 # Consulta produtos do MarketPlace
@@ -153,7 +156,8 @@ def ap_transaction_makertplace():
     print(request.json)
     return  "Nenhum market place informado"
 
-if __name__ == '__main__':
+
+def test():
 
     x = {
             "id": str(uuid.uuid1()),
@@ -185,4 +189,28 @@ if __name__ == '__main__':
     finally: 
         receiver.join()
         tester.join()
+
+def main():
+   
+    host= input("Informe o IP: ")
+    port = int(input("Informe a Porta: "))
+    nome = input("Informe o nome do marketplace: ")
+
+    mkt = Market(host,port,nome, int(uuid.uuid1()) )
+    mkt.Generate_peer_list()
+    global main_marketplace
+    main_marketplace = mkt
+    try:
+        receiver = Thread(target=app.run, args=( host, port,))
+
+        receiver.start()
+
+    except Exception as expt:
+        print(expt)
+        
+    finally: 
+        receiver.join()
+
+if __name__ == '__main__':
+    main()
 

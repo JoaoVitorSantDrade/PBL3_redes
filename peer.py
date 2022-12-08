@@ -49,9 +49,9 @@ class Peer:
                 for port in conf.PORT_RANGE:
 
                     port_str = str(port-10000)
-                    marketplaces_not_present = "0" in port_str
+                    marketplaces_present = "0" in port_str
 
-                    if port < self.Market.port or port >= self.Market.port+conf.ALLOCATED_PORT_RANGE and not marketplaces_not_present:
+                    if port < self.Market.port or port >= self.Market.port+conf.ALLOCATED_PORT_RANGE and not marketplaces_present:
                         if port != 10000:
                             try:
                                 link = f'http://{url}:{port}/api/connection'
@@ -117,15 +117,14 @@ class Peer:
 
     def sendTransaction(self, transaction:trs):
         headers = {'content-type': 'application/json'}
+        resposta = []
         for info in self.SuccefullConnection:
-            print(f'Item da lista: {info}')
             try:
                 link = f'http://{info[0]}:{info[1]}/api/transaction' 
                 r = requests.post(link, json=transaction.to_dict(), headers=headers, timeout= 2)
                 response = r.text
                 r.close()
-                print(f"essa foi a response: {response}")
-                #return response
+                resposta.append(response)
             except requests.exceptions.InvalidURL as erriu:
                 print("Invalid URL")
                 err = erriu
@@ -134,7 +133,9 @@ class Peer:
                 print(f"Transação não enviada - {link}")
             except Exception as exp:
                 err = exp
-                print(exp)              
+                print(exp)
+                return "Error"
+        return resposta
 
 
 app = Flask(__name__)
@@ -147,6 +148,7 @@ def arp():
         global Main_Peer
         Main_Peer
         Main_Peer.SuccefullConnection.add((args[0],args[1]))
+        print(f'Par se conectou: {args}')
         return f"Conexão com {args} feita com sucesso", 201
 
     except Exception as exp:
