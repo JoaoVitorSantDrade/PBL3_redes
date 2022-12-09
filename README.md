@@ -38,6 +38,7 @@
 <p>Na construção da arquitetura P2P foi implementada classe peer, o peer fica responsável pela comunicação entre pares enviando as transações, mensagens no formato json com dados necessários, o peer também realiza um broadcast no locahost na faixa de portas de 10000 a 10099 para buscar os peers ativos.</p>
 
 <p align="center"><img src ="img/img1.png.png"></p>
+<p align ="center"><strong>Figura 1. Arquitetura P2P proposta para o sistema</strong></p>
 <p>Se tratando de um sistema distribuído não existe relógio global para todos processos por isso para sincronizar os processos foram utilizados relógios vetoriais, cada marketplace possui seu próprio relógio vetorial com um ID único que corresponde a sua posição no relógio, em sistemas reais com processos escalados dinamicamente os relógios seriam implementados como listas dinâmicas mas para o modelo de solução adotou-se um vetor simples para não aumentar a complexidade.</p>
 
 <p>Os relógios são enviados juntos de cada transação para que possam ser atualizados. Quando uma compra tem de ser realizada os relógios lógicos são compartilhados entre todos pares até que se possa ordenar os eventos, o markteplace com o produto cadastrado na sua base de dados decide liberar o acesso a região critica para o processo correspondente a vez.</p>
