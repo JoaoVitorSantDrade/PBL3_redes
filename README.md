@@ -75,13 +75,13 @@
 
 <h1>Para rodar o projeto você precisa dessas bibliotecas:</h1>
 
+<ol>
+  <li>Python 3.9+ </li> 
+  <li>flask</li> 
+  <li>uuid</li> 
+</ol>
 
-Python 3.9+ 
-flask
-uuid
-
-
-Como iniciar:
+<p>Como iniciar:</p>
 
 python marketplace.py
 
