@@ -37,6 +37,7 @@
 
 <p>Na construção da arquitetura P2P foi implementada classe peer, o peer fica responsável pela comunicação entre pares enviando as transações, mensagens no formato json com dados necessários, o peer também realiza um broadcast no locahost na faixa de portas de 10000 a 10099 para buscar os peers ativos.</p>
 
+<p align="center"><img src ="img/img1.png.png"></p>
 <p>Se tratando de um sistema distribuído não existe relógio global para todos processos por isso para sincronizar os processos foram utilizados relógios vetoriais, cada marketplace possui seu próprio relógio vetorial com um ID único que corresponde a sua posição no relógio, em sistemas reais com processos escalados dinamicamente os relógios seriam implementados como listas dinâmicas mas para o modelo de solução adotou-se um vetor simples para não aumentar a complexidade.</p>
 
 <p>Os relógios são enviados juntos de cada transação para que possam ser atualizados. Quando uma compra tem de ser realizada os relógios lógicos são compartilhados entre todos pares até que se possa ordenar os eventos, o markteplace com o produto cadastrado na sua base de dados decide liberar o acesso a região critica para o processo correspondente a vez.</p>
@@ -70,27 +71,3 @@
 <p>DevMedia. Rest tutorial. [2013]. Disponível em: < https://www.devmedia.com.br/rest-tutorial/28912> Acesso em: 04 Dez. 2022.</p>
 <p>STEEN, Maarten Van; TANENBAUM, Andrew S. Sistemas distribuídos: princípios e paradigmas. São Paulo, 2007.</p>
 <p>Geekforgeeks. Lamport’s logical clock .[2022] . 	Disponível em: <https://www.geeksforgeeks.org/lamports-logical-clock/> Acesso em: 08 Dez. 2022.</p>
-
-<h1>Para rodar o projeto você precisa dessas bibliotecas:</h1>
-
-
-Python 3.9+ 
-flask
-uuid
-
-
-Como iniciar:
-
-python marketplace.py
-
-este comando irá iniciar nossa função principal
-
-Como configurar os marketplaces
-
-foi testado apenas com o localhost como Host
-
-as portas que devem ser colocadas quando for configurar o marketplace são: 10000, 10010, 10020, 10030, 10040, 10050, 10060, 10070, 10080, 10090
-
-as demais portas estão alocadas para os possíveis "peers" que irão surgir
-
-para se comunicar utilizando a API do marketplace escolhido, utilize a porta do mesmo.
