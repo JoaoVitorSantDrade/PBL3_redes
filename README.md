@@ -72,3 +72,27 @@
 <p>DevMedia. Rest tutorial. [2013]. Disponível em: < https://www.devmedia.com.br/rest-tutorial/28912> Acesso em: 04 Dez. 2022.</p>
 <p>STEEN, Maarten Van; TANENBAUM, Andrew S. Sistemas distribuídos: princípios e paradigmas. São Paulo, 2007.</p>
 <p>Geekforgeeks. Lamport’s logical clock .[2022] . 	Disponível em: <https://www.geeksforgeeks.org/lamports-logical-clock/> Acesso em: 08 Dez. 2022.</p>
+
+<h1>Para rodar o projeto você precisa dessas bibliotecas:</h1>
+
+
+Python 3.9+ 
+flask
+uuid
+
+
+Como iniciar:
+
+python marketplace.py
+
+este comando irá iniciar nossa função principal
+
+Como configurar os marketplaces
+
+foi testado apenas com o localhost como Host
+
+as portas que devem ser colocadas quando for configurar o marketplace são: 10000, 10010, 10020, 10030, 10040, 10050, 10060, 10070, 10080, 10090
+
+as demais portas estão alocadas para os possíveis "peers" que irão surgir
+
+para se comunicar utilizando a API do marketplace escolhido, utilize a porta do mesmo.
