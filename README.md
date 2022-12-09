@@ -71,7 +71,7 @@
 <p>STEEN, Maarten Van; TANENBAUM, Andrew S. Sistemas distribuídos: princípios e paradigmas. São Paulo, 2007.</p>
 <p>Geekforgeeks. Lamport’s logical clock .[2022] . 	Disponível em: <https://www.geeksforgeeks.org/lamports-logical-clock/> Acesso em: 08 Dez. 2022.</p>
 
-<h3>Para rodar o projeto você precisa dessas bibliotecas:<h3>
+<h1>Para rodar o projeto você precisa dessas bibliotecas:</h1>
 
 
 Python 3.9+ 
